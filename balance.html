@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>WebConta — Balance General</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .bal-wrap { max-width:900px; }
+    .bal-cols { display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; }
+    @media(max-width:780px){ .bal-cols{ grid-template-columns:1fr; } }
+
+    .bal-section { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-xl); overflow:hidden; margin-bottom:16px; box-shadow:var(--shadow-xs); }
+    .bal-hdr { background:var(--surface2); border-bottom:1px solid var(--border); padding:9px 18px; display:flex; align-items:center; gap:8px; }
+    .bal-hdr span { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.7px; color:var(--text2); }
+    .bal-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+
+    .bal-row { display:grid; grid-template-columns:1fr 130px; align-items:center; border-bottom:1px solid var(--border); min-height:38px; }
+    .bal-row:last-child { border-bottom:none; }
+    .bal-row.sub { background:rgba(0,0,0,.03); }
+    .bal-row.total { background:rgba(91,79,207,.09); border-top:2px solid var(--accent-mid); }
+    .bal-row.grand { background:var(--accent-bg); border-top:2px solid var(--accent); }
+
+    .bal-lbl { padding:7px 18px; font-size:13px; color:var(--text); display:flex; align-items:center; gap:6px; }
+    .bal-lbl.in2 { padding-left:32px; font-size:12px; color:var(--text2); }
+    .bal-lbl.bold { font-weight:600; }
+    .bal-lbl.acc { color:var(--accent); font-weight:600; }
+    .bal-num { padding:7px 16px 7px 0; font-family:'JetBrains Mono',monospace; font-size:12px; text-align:right; color:var(--text2); }
+    .bal-num.total { font-size:14px; font-weight:700; color:var(--accent); }
+    .bal-num.grand { font-size:14px; font-weight:700; color:var(--accent); }
+    .bal-num.neg { color:var(--red); }
+    .bal-num.zero { color:var(--text3); }
+
+    .ecuacion-bar { background:var(--accent-bg); border:1.5px solid var(--accent-mid); border-radius:var(--r-xl); padding:14px 22px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+    .ec-item { text-align:center; }
+    .ec-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--text3); margin-bottom:4px; }
+    .ec-val { font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:700; }
+    .ec-eq { font-size:22px; color:var(--text3); font-weight:300; }
+    .ec-ok { font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; }
+    .ec-ok.bal { background:var(--green-bg); color:var(--green); }
+    .ec-ok.nobal { background:var(--red-bg); color:var(--red); }
+
+    .period-bar { display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+    .period-bar input[type=date] { background:var(--surface2); border:1.5px solid var(--border); border-radius:var(--r-md); color:var(--text); font-family:inherit; font-size:13px; padding:7px 10px; outline:none; }
+  </style>
+</head>
+<body>
+<div id="sidebar-root"></div>
+<div class="main-content">
+  <div id="topbar-root"></div>
+  <div class="page-body">
+    <div class="bal-wrap">
+
+      <div class="period-bar">
+        <span style="font-size:13px;color:var(--text3);">Al</span>
+        <input type="date" id="f-al" onchange="render()"/>
+        <button class="btn btn-primary btn-sm" onclick="render()">↺ Actualizar</button>
+        <button class="btn btn-sm" onclick="window.print()">⎙ Imprimir</button>
+        <span style="font-size:12px;color:var(--text3);margin-left:auto;" id="info"></span>
+      </div>
+
+      <!-- Ecuación contable -->
+      <div class="ecuacion-bar">
+        <div class="ec-item"><div class="ec-label">Activo</div><div class="ec-val" id="ec-activo" style="color:var(--activo);">$0.00</div></div>
+        <div class="ec-eq">=</div>
+        <div class="ec-item"><div class="ec-label">Pasivo</div><div class="ec-val" id="ec-pasivo" style="color:var(--pasivo);">$0.00</div></div>
+        <div class="ec-eq">+</div>
+        <div class="ec-item"><div class="ec-label">Capital</div><div class="ec-val" id="ec-capital" style="color:var(--capital);">$0.00</div></div>
+        <div><span class="ec-ok bal" id="ec-status">Cuadra ✓</span></div>
+      </div>
+
+      <div class="bal-cols" id="bal-cols"></div>
+
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+document.getElementById('sidebar-root').innerHTML = renderSidebar();
+document.getElementById('topbar-root').innerHTML  = renderTopbar('Balance General');
+
+// Fecha de hoy por defecto
+document.getElementById('f-al').value = new Date().toISOString().split('T')[0];
+
+function fmtN(n){ return (Math.abs(n)||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function seccion(titulo, color, rows, total){
+  let html = `<div class="bal-section">`;
+  html += `<div class="bal-hdr"><div class="bal-dot" style="background:${color}"></div><span>${titulo}</span></div>`;
+  rows.forEach(r=>{
+    if(!r.saldo && r.saldo!==0) return;
+    html += `<div class="bal-row ${r.sub?'sub':''}">
+      <div class="bal-lbl ${r.sub?'in2':'bold'}">${r.nombre}</div>
+      <div class="bal-num ${r.saldo<0?'neg':r.saldo===0?'zero':''}">${r.saldo===0?'—':fmtN(r.saldo)}</div>
+    </div>`;
+  });
+  html += `<div class="bal-row total">
+    <div class="bal-lbl acc bold">= Total ${titulo}</div>
+    <div class="bal-num total">${fmtN(total)}</div>
+  </div>`;
+  html += `</div>`;
+  return html;
+}
+
+function render(){
+  let asientos = DB.getAsientos();
+  const al = document.getElementById('f-al').value;
+  if(al) asientos = asientos.filter(a=>a.fecha<=al);
+  document.getElementById('info').textContent = asientos.length+' asiento'+(asientos.length!==1?'s':'')+' considerados';
+
+  const S = DB.getSaldosCuentas(asientos);
+
+  // Agrupar cuentas por tipo y obtener saldo
+  const getCuentasTipo = (tipo) =>
+    Object.values(S).filter(c=>c.tipo===tipo && c.saldo!==0)
+      .sort((a,b)=>a.codigo.localeCompare(b.codigo,undefined,{numeric:true}));
+
+  const activos  = getCuentasTipo('ACTIVO');
+  const pasivos  = getCuentasTipo('PASIVO');
+  const capitales= getCuentasTipo('CAPITAL');
+  const ingresos = getCuentasTipo('INGRESO');
+  const gastos   = getCuentasTipo('GASTO');
+
+  const totalActivo  = activos.reduce((s,c)=>s+c.saldo,0);
+  const totalPasivo  = pasivos.reduce((s,c)=>s+c.saldo,0);
+  const totalCapital = capitales.reduce((s,c)=>s+c.saldo,0);
+
+  // Resultado del ejercicio (ingresos - gastos) se integra al capital
+  const totalIngresos = ingresos.reduce((s,c)=>s+c.saldo,0);
+  const totalGastos   = gastos.reduce((s,c)=>s+c.saldo,0);
+  const resultEjercicio = totalIngresos - totalGastos;
+  const capitalTotal  = totalCapital + resultEjercicio;
+
+  // Ecuación
+  document.getElementById('ec-activo').textContent  = fmt(totalActivo);
+  document.getElementById('ec-pasivo').textContent  = fmt(totalPasivo);
+  document.getElementById('ec-capital').textContent = fmt(capitalTotal);
+  const diff = Math.abs(totalActivo - (totalPasivo + capitalTotal));
+  const status = document.getElementById('ec-status');
+  status.className = 'ec-ok ' + (diff < 0.01 ? 'bal':'nobal');
+  status.textContent = diff < 0.01 ? 'Cuadra ✓' : 'Diferencia: '+fmtN(diff);
+
+  // Activo circulante vs no circulante
+  const actCirc   = activos.filter(c=>c.codigo.startsWith('1.1')||c.codigo.startsWith('1.3')||c.codigo.startsWith('1.4'));
+  const actNoCir  = activos.filter(c=>!c.codigo.startsWith('1.1')&&!c.codigo.startsWith('1.3')&&!c.codigo.startsWith('1.4'));
+  const totAC     = actCirc.reduce((s,c)=>s+c.saldo,0);
+  const totANC    = actNoCir.reduce((s,c)=>s+c.saldo,0);
+
+  const pasCP     = pasivos.filter(c=>c.codigo.startsWith('2.1')||c.codigo.startsWith('2.3')||c.codigo.startsWith('2.4')||c.codigo.startsWith('2.5')||c.codigo.startsWith('2.6')||c.codigo.startsWith('2.7'));
+  const pasLP     = pasivos.filter(c=>c.codigo.startsWith('2.2'));
+  const totPCP    = pasCP.reduce((s,c)=>s+c.saldo,0);
+  const totPLP    = pasLP.reduce((s,c)=>s+c.saldo,0);
+
+  let leftHtml = '';
+  // Activo circulante
+  leftHtml += `<div class="bal-section">`;
+  leftHtml += `<div class="bal-hdr"><div class="bal-dot" style="background:var(--activo)"></div><span>Activo</span></div>`;
+  if(actCirc.length){
+    leftHtml += `<div class="bal-row sub"><div class="bal-lbl bold" style="color:var(--activo);">Activo Circulante</div><div></div></div>`;
+    actCirc.forEach(c=>{ leftHtml += `<div class="bal-row"><div class="bal-lbl in2">${c.nombre}</div><div class="bal-num">${fmtN(c.saldo)}</div></div>`; });
+    leftHtml += `<div class="bal-row sub"><div class="bal-lbl in2 bold">Subtotal circulante</div><div class="bal-num" style="font-weight:600;">${fmtN(totAC)}</div></div>`;
+  }
+  if(actNoCir.length){
+    leftHtml += `<div class="bal-row sub"><div class="bal-lbl bold" style="color:var(--activo);margin-top:4px;">Activo No Circulante</div><div></div></div>`;
+    actNoCir.forEach(c=>{ leftHtml += `<div class="bal-row"><div class="bal-lbl in2">${c.nombre}</div><div class="bal-num ${c.saldo<0?'neg':''}">${fmtN(c.saldo)}</div></div>`; });
+    leftHtml += `<div class="bal-row sub"><div class="bal-lbl in2 bold">Subtotal no circulante</div><div class="bal-num" style="font-weight:600;">${fmtN(totANC)}</div></div>`;
+  }
+  leftHtml += `<div class="bal-row total"><div class="bal-lbl acc bold">= Total Activo</div><div class="bal-num total">${fmtN(totalActivo)}</div></div>`;
+  leftHtml += `</div>`;
+
+  let rightHtml = '';
+  // Pasivo
+  rightHtml += `<div class="bal-section">`;
+  rightHtml += `<div class="bal-hdr"><div class="bal-dot" style="background:var(--pasivo)"></div><span>Pasivo</span></div>`;
+  if(pasCP.length){
+    rightHtml += `<div class="bal-row sub"><div class="bal-lbl bold" style="color:var(--pasivo);">Pasivo Corto Plazo</div><div></div></div>`;
+    pasCP.forEach(c=>{ rightHtml += `<div class="bal-row"><div class="bal-lbl in2">${c.nombre}</div><div class="bal-num">${fmtN(c.saldo)}</div></div>`; });
+    rightHtml += `<div class="bal-row sub"><div class="bal-lbl in2 bold">Subtotal C.P.</div><div class="bal-num" style="font-weight:600;">${fmtN(totPCP)}</div></div>`;
+  }
+  if(pasLP.length){
+    rightHtml += `<div class="bal-row sub"><div class="bal-lbl bold" style="color:var(--pasivo);">Pasivo Largo Plazo</div><div></div></div>`;
+    pasLP.forEach(c=>{ rightHtml += `<div class="bal-row"><div class="bal-lbl in2">${c.nombre}</div><div class="bal-num">${fmtN(c.saldo)}</div></div>`; });
+    rightHtml += `<div class="bal-row sub"><div class="bal-lbl in2 bold">Subtotal L.P.</div><div class="bal-num" style="font-weight:600;">${fmtN(totPLP)}</div></div>`;
+  }
+  rightHtml += `<div class="bal-row total"><div class="bal-lbl acc bold">= Total Pasivo</div><div class="bal-num total">${fmtN(totalPasivo)}</div></div>`;
+  rightHtml += `</div>`;
+
+  // Capital contable
+  rightHtml += `<div class="bal-section">`;
+  rightHtml += `<div class="bal-hdr"><div class="bal-dot" style="background:var(--capital)"></div><span>Capital Contable</span></div>`;
+  capitales.forEach(c=>{ rightHtml += `<div class="bal-row"><div class="bal-lbl in2">${c.nombre}</div><div class="bal-num">${fmtN(c.saldo)}</div></div>`; });
+  if(resultEjercicio!==0){
+    rightHtml += `<div class="bal-row"><div class="bal-lbl in2">Resultado del ejercicio</div><div class="bal-num ${resultEjercicio<0?'neg':''}">${fmtN(resultEjercicio)}</div></div>`;
+  }
+  rightHtml += `<div class="bal-row total"><div class="bal-lbl acc bold">= Total Capital</div><div class="bal-num total">${fmtN(capitalTotal)}</div></div>`;
+  rightHtml += `</div>`;
+
+  // Pasivo + Capital total
+  rightHtml += `<div class="bal-section"><div class="bal-row grand">
+    <div class="bal-lbl acc bold" style="font-size:14px;">= Total Pasivo + Capital</div>
+    <div class="bal-num grand">${fmtN(totalPasivo+capitalTotal)}</div>
+  </div></div>`;
+
+  document.getElementById('bal-cols').innerHTML = `<div>${leftHtml}</div><div>${rightHtml}</div>`;
+}
+
+render();
+</script>
+</body>
+</html>
