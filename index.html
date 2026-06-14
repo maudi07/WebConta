@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>WebConta — Panel de Control</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+<div id="sidebar-root"></div>
+<div class="main-content">
+  <div id="topbar-root"></div>
+  <div class="page-body">
+
+    <div class="company-section">
+      <div><label>Empresa</label><input id="co-nombre" placeholder="Mi Empresa S.A. de C.V."/></div>
+      <div><label>RFC</label><input id="co-rfc" placeholder="MEM900101XXX"/></div>
+      <div><label>Ejercicio</label><input id="co-ejercicio" placeholder="2024"/></div>
+    </div>
+
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:26px;">
+      <a href="catalogo.html"       class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--accent-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">📒</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Catálogo de Cuentas</div><div class="text3" style="font-size:12px;" id="qs-cuentas">cargando...</div></div></a>
+      <a href="transacciones.html"  class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--green-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">✏️</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Nueva Transacción</div><div class="text3" style="font-size:12px;">Registrar asiento</div></div></a>
+      <a href="diario.html"         class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--purple-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">📖</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Libro Diario</div><div class="text3" style="font-size:12px;" id="qs-asientos">cargando...</div></div></a>
+      <a href="mayor.html"          class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--blue-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">🗂️</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Libro Mayor</div><div class="text3" style="font-size:12px;">Saldos por cuenta</div></div></a>
+      <a href="estados.html"        class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--orange-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">📊</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Resultado Integral</div><div class="text3" style="font-size:12px;">Automático del diario</div></div></a>
+      <a href="balanza.html"        class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--accent-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">🧾</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Balanza de Comprobación</div><div class="text3" style="font-size:12px;">Debe = Haber · Saldos</div></div></a>
+      <a href="balance.html"        class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--capital-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">⚖️</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Balance General</div><div class="text3" style="font-size:12px;">Activo = Pasivo + Capital</div></div></a>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Últimas transacciones</span><a href="diario.html" class="btn btn-sm">Ver todas →</a></div>
+      <div id="ultimas-list"></div>
+    </div>
+
+  </div>
+</div>
+<script src="shared.js"></script>
+<script>
+  document.getElementById('sidebar-root').innerHTML = renderSidebar();
+  document.getElementById('topbar-root').innerHTML  = renderTopbar('Panel de Control');
+
+  function saveEmpresa(){
+    DB.saveEmpresa({ nombre:document.getElementById('co-nombre').value, rfc:document.getElementById('co-rfc').value.toUpperCase(), ejercicio:document.getElementById('co-ejercicio').value });
+  }
+  ['co-nombre','co-rfc','co-ejercicio'].forEach(id=>document.getElementById(id).addEventListener('input',saveEmpresa));
+
+  function load(){
+    const e=DB.getEmpresa();
+    document.getElementById('co-nombre').value    = e.nombre||'';
+    document.getElementById('co-rfc').value       = e.rfc||'';
+    document.getElementById('co-ejercicio').value = e.ejercicio||'';
+
+    const cuentas=DB.getCuentas(), asientos=DB.getAsientos();
+    const S=DB.getSaldosCuentas(asientos);
+    const tD=asientos.reduce((s,a)=>s+a.movimientos.filter(m=>m.tipo==='DEBE').reduce((ss,m)=>ss+(parseFloat(m.monto)||0),0),0);
+    const tH=asientos.reduce((s,a)=>s+a.movimientos.filter(m=>m.tipo==='HABER').reduce((ss,m)=>ss+(parseFloat(m.monto)||0),0),0);
+    const utilNeta = Object.values(S).filter(c=>c.tipo==='INGRESO').reduce((s,c)=>s+c.saldo,0)
+                   - Object.values(S).filter(c=>c.tipo==='GASTO').reduce((s,c)=>s+c.saldo,0);
+
+    document.getElementById('stats-grid').innerHTML = `
+      <div class="stat-card"><div class="s-label">Cuentas</div><div class="s-value" style="color:var(--accent);">${cuentas.length}</div><div class="s-sub">en catálogo</div></div>
+      <div class="stat-card"><div class="s-label">Asientos</div><div class="s-value" style="color:var(--purple);">${asientos.length}</div><div class="s-sub">registrados</div></div>
+      <div class="stat-card"><div class="s-label">Total Debe</div><div class="s-value pos">${fmt(tD)}</div></div>
+      <div class="stat-card"><div class="s-label">Total Haber</div><div class="s-value neg">${fmt(tH)}</div></div>
+      <div class="stat-card"><div class="s-label">Utilidad neta</div><div class="s-value ${utilNeta>=0?'pos':'neg'}">${fmt(utilNeta)}</div></div>
+    `;
+    document.getElementById('qs-cuentas').textContent  = cuentas.length+' cuentas';
+    document.getElementById('qs-asientos').textContent = asientos.length+' asientos';
+
+    const ul=document.getElementById('ultimas-list');
+    const rec=asientos.slice(0,6);
+    if(!rec.length){ ul.innerHTML=`<div class="empty-state" style="padding:28px;"><p>Sin transacciones</p><a href="transacciones.html" class="btn btn-primary">Registrar primera</a></div>`; return; }
+    ul.innerHTML = rec.map(a=>{
+      const tot=a.movimientos.filter(m=>m.tipo==='DEBE').reduce((s,m)=>s+(parseFloat(m.monto)||0),0);
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 22px;border-bottom:1px solid var(--border);gap:12px;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);background:var(--accent-bg);padding:2px 7px;border-radius:4px;flex-shrink:0;">${a.id}</span>
+        <span style="flex:1;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.descripcion}</span>
+        <span style="font-size:11px;color:var(--text3);flex-shrink:0;">${fmtFecha(a.fecha)}</span>
+        <span class="badge badge-info mono" style="flex-shrink:0;">${fmt(tot)}</span>
+      </div>`;
+    }).join('');
+  }
+  load();
+</script>
+</body>
+</html>

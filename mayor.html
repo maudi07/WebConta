@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>WebConta — Libro Mayor</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .mayor-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+    .mayor-toolbar input[type=date] { background:var(--surface2); border:1.5px solid var(--border); border-radius:var(--r-md); color:var(--text); font-family:inherit; font-size:13px; padding:7px 10px; outline:none; }
+    .mayor-toolbar select { background:var(--surface2); border:1.5px solid var(--border); border-radius:var(--r-md); color:var(--text); font-family:inherit; font-size:13px; padding:7px 12px; outline:none; min-width:220px; }
+
+    .cuenta-mayor { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-xl); overflow:hidden; margin-bottom:20px; box-shadow:var(--shadow-xs); }
+    .cm-header { background:var(--surface2); border-bottom:1px solid var(--border); padding:12px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .cm-nombre { font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; }
+    .cm-codigo { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text3); background:var(--bg); padding:2px 7px; border-radius:5px; }
+    .cm-saldo-final { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; }
+
+    /* Tabla T contable */
+    .t-account { display:grid; grid-template-columns:1fr 1px 1fr; }
+    .t-col { }
+    .t-divider { background:var(--border); }
+    .t-col-hdr { padding:7px 14px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; text-align:center; border-bottom:1px solid var(--border); }
+    .t-col-hdr.debe  { color:var(--green); background:var(--green-bg); }
+    .t-col-hdr.haber { color:var(--red);   background:var(--red-bg); }
+
+    .t-mov { display:flex; align-items:center; justify-content:space-between; padding:7px 14px; border-bottom:1px solid var(--border); font-size:12px; gap:8px; }
+    .t-mov:last-child { border-bottom:none; }
+    .t-mov-ref { color:var(--text3); font-family:'JetBrains Mono',monospace; font-size:10px; flex-shrink:0; }
+    .t-mov-desc { flex:1; color:var(--text2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .t-mov-monto { font-family:'JetBrains Mono',monospace; font-weight:600; flex-shrink:0; }
+    .t-mov-monto.debe  { color:var(--green); }
+    .t-mov-monto.haber { color:var(--red); }
+
+    .cm-footer { padding:10px 18px; background:var(--surface2); border-top:2px solid var(--border); display:grid; grid-template-columns:1fr 1px 1fr; }
+    .cm-footer-col { padding:4px 8px; display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; }
+    .cm-footer-total { font-family:'JetBrains Mono',monospace; font-weight:700; }
+    .cm-footer-total.debe  { color:var(--green); }
+    .cm-footer-total.haber { color:var(--red); }
+    .saldo-row { padding:8px 18px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:rgba(91,79,207,.05); }
+    .saldo-label { font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; }
+    .saldo-val   { font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; }
+  </style>
+</head>
+<body>
+<div id="sidebar-root"></div>
+<div class="main-content">
+  <div id="topbar-root"></div>
+  <div class="page-body">
+
+    <div class="mayor-toolbar">
+      <div class="search-wrap" style="max-width:220px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-cuenta" placeholder="Filtrar cuenta..." oninput="render()"/>
+      </div>
+      <select id="filter-tipo" onchange="render()">
+        <option value="">Todos los tipos</option>
+        <option value="ACTIVO">Activo</option>
+        <option value="PASIVO">Pasivo</option>
+        <option value="CAPITAL">Capital</option>
+        <option value="INGRESO">Ingreso</option>
+        <option value="GASTO">Gasto</option>
+      </select>
+      <span style="font-size:13px;color:var(--text3);">Del</span>
+      <input type="date" id="f-ini" onchange="render()"/>
+      <span style="font-size:13px;color:var(--text3);">al</span>
+      <input type="date" id="f-fin" onchange="render()"/>
+      <button class="btn btn-primary btn-sm" onclick="render()">↺ Actualizar</button>
+      <button class="btn btn-sm" onclick="window.print()">⎙ Imprimir</button>
+      <span style="font-size:12px;color:var(--text3);margin-left:auto;" id="info"></span>
+    </div>
+
+    <div id="mayor-content"></div>
+
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+document.getElementById('sidebar-root').innerHTML = renderSidebar();
+document.getElementById('topbar-root').innerHTML  = renderTopbar('Libro Mayor');
+
+function fmtN(n){ return (Math.abs(n)||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function render(){
+  let asientos = DB.getAsientos();
+  const ini  = document.getElementById('f-ini').value;
+  const fin  = document.getElementById('f-fin').value;
+  const q    = document.getElementById('search-cuenta').value.toLowerCase();
+  const tipo = document.getElementById('filter-tipo').value;
+
+  if(ini) asientos = asientos.filter(a=>a.fecha>=ini);
+  if(fin) asientos = asientos.filter(a=>a.fecha<=fin);
+
+  document.getElementById('info').textContent = asientos.length+' asientos';
+
+  // Construir movimientos por cuenta
+  const cuentas = DB.getCuentas().filter(c=> {
+    if(tipo && c.tipo!==tipo) return false;
+    if(q && !c.nombre.toLowerCase().includes(q) && !c.codigo.includes(q)) return false;
+    return true;
+  });
+
+  // Para cada cuenta, recopilar todos sus movimientos
+  const movsByCuenta = {};
+  asientos.forEach(a => {
+    a.movimientos.forEach(m => {
+      if(!movsByCuenta[m.cuentaId]) movsByCuenta[m.cuentaId] = [];
+      movsByCuenta[m.cuentaId].push({
+        tipo: m.tipo, monto: parseFloat(m.monto)||0,
+        desc: a.descripcion, ref: a.id, fecha: a.fecha
+      });
+    });
+  });
+
+  // Solo mostrar cuentas con movimientos
+  const cuentasConMovs = cuentas.filter(c => movsByCuenta[c.id]?.length);
+
+  if(!cuentasConMovs.length){
+    document.getElementById('mayor-content').innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      <p>No hay movimientos para mostrar</p>
+      <a href="transacciones.html" class="btn btn-primary">Registrar transacción</a>
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  cuentasConMovs.forEach(c => {
+    const movs = movsByCuenta[c.id] || [];
+    const debe  = movs.filter(m=>m.tipo==='DEBE');
+    const haber = movs.filter(m=>m.tipo==='HABER');
+    const totD  = debe.reduce((s,m)=>s+m.monto,0);
+    const totH  = haber.reduce((s,m)=>s+m.monto,0);
+    const saldo = c.naturaleza==='DEUDORA' ? totD-totH : totH-totD;
+    const saldoLabel = c.naturaleza==='DEUDORA' ? (saldo>=0?'Saldo deudor':'Saldo acreedor') : (saldo>=0?'Saldo acreedor':'Saldo deudor');
+
+    const maxRows = Math.max(debe.length, haber.length);
+    let debeRows='', haberRows='';
+    for(let i=0;i<maxRows;i++){
+      const d = debe[i];
+      const h = haber[i];
+      debeRows += `<div class="t-mov">
+        ${d ? `<span class="t-mov-ref">${d.ref}</span><span class="t-mov-desc">${d.desc}</span><span class="t-mov-monto debe">${fmtN(d.monto)}</span>` : ''}
+      </div>`;
+      haberRows += `<div class="t-mov">
+        ${h ? `<span class="t-mov-ref">${h.ref}</span><span class="t-mov-desc">${h.desc}</span><span class="t-mov-monto haber">${fmtN(h.monto)}</span>` : ''}
+      </div>`;
+    }
+
+    html += `<div class="cuenta-mayor">
+      <div class="cm-header">
+        <div class="cm-nombre">
+          <div class="tipo-dot dot-${c.tipo.toLowerCase()}"></div>
+          ${c.nombre}
+          <span class="cm-codigo">${c.codigo}</span>
+          ${tipoBadge(c.tipo)}
+        </div>
+        <div class="cm-saldo-final" style="color:${saldo>=0?'var(--green)':'var(--red)'};">
+          ${saldoLabel}: ${fmtN(Math.abs(saldo))}
+        </div>
+      </div>
+      <div class="t-account">
+        <div class="t-col">
+          <div class="t-col-hdr debe">DEBE</div>
+          ${debeRows}
+        </div>
+        <div class="t-divider"></div>
+        <div class="t-col">
+          <div class="t-col-hdr haber">HABER</div>
+          ${haberRows}
+        </div>
+      </div>
+      <div class="cm-footer">
+        <div class="cm-footer-col">
+          <span style="font-size:11px;color:var(--text3);">Total Debe</span>
+          <span class="cm-footer-total debe">${fmtN(totD)}</span>
+        </div>
+        <div></div>
+        <div class="cm-footer-col">
+          <span style="font-size:11px;color:var(--text3);">Total Haber</span>
+          <span class="cm-footer-total haber">${fmtN(totH)}</span>
+        </div>
+      </div>
+      <div class="saldo-row">
+        <span class="saldo-label">${saldoLabel}</span>
+        <span class="saldo-val" style="color:${saldo>=0?'var(--accent)':'var(--red)'};">${fmtN(Math.abs(saldo))}</span>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('mayor-content').innerHTML = html;
+}
+
+render();
+</script>
+</body>
+</html>

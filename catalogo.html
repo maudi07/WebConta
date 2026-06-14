@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebConta — Catálogo de Cuentas</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .tipo-summary { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:26px; }
+    .tipo-chip { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--r-xl); padding:12px 14px; cursor:pointer; transition:all .15s; box-shadow:var(--shadow-xs); position:relative; overflow:hidden; }
+    .tipo-chip::before { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; border-radius:0 0 var(--r-xl) var(--r-xl); }
+    .tipo-chip.activo::before  { background:var(--activo); }
+    .tipo-chip.pasivo::before  { background:var(--pasivo); }
+    .tipo-chip.capital::before { background:var(--capital); }
+    .tipo-chip.ingreso::before { background:var(--ingreso); }
+    .tipo-chip.gasto::before   { background:var(--gasto); }
+    .tipo-chip:hover, .tipo-chip.active { border-color:transparent; box-shadow:var(--shadow-sm); transform:translateY(-1px); }
+    .tipo-chip.activo.active  { background:var(--activo-bg);  border-color:var(--activo); }
+    .tipo-chip.pasivo.active  { background:var(--pasivo-bg);  border-color:var(--pasivo); }
+    .tipo-chip.capital.active { background:var(--capital-bg); border-color:var(--capital); }
+    .tipo-chip.ingreso.active { background:var(--ingreso-bg); border-color:var(--ingreso); }
+    .tipo-chip.gasto.active   { background:var(--gasto-bg);   border-color:var(--gasto); }
+    .tipo-chip-icon  { font-size:18px; margin-bottom:4px; }
+    .tipo-chip-label { font-size:11px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:.5px; }
+    .tipo-chip-count { font-size:20px; font-weight:700; margin-top:2px; }
+    .tipo-chip.activo  .tipo-chip-count { color:var(--activo); }
+    .tipo-chip.pasivo  .tipo-chip-count { color:var(--pasivo); }
+    .tipo-chip.capital .tipo-chip-count { color:var(--capital); }
+    .tipo-chip.ingreso .tipo-chip-count { color:var(--ingreso); }
+    .tipo-chip.gasto   .tipo-chip-count { color:var(--gasto); }
+
+    .catalogo-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:22px; }
+    .cuentas-grid { display:flex; flex-direction:column; background:var(--surface); border:1.5px solid var(--border); border-radius:var(--r-xl); overflow:hidden; box-shadow:var(--shadow-xs); }
+    .cuenta-row { display:grid; grid-template-columns:4px 1fr auto auto auto 72px; align-items:center; gap:12px; padding:11px 18px; border-bottom:1px solid var(--border); transition:background .1s; }
+    .cuenta-row:last-child { border-bottom:none; }
+    .cuenta-row:hover { background:var(--surface2); }
+    .cuenta-stripe { width:4px; height:28px; border-radius:4px; flex-shrink:0; }
+    .cuenta-nombre-wrap { display:flex; flex-direction:column; gap:2px; min-width:0; }
+    .cuenta-nombre { font-size:13px; font-weight:500; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cuenta-codigo { font-size:11px; color:var(--text3); font-family:'JetBrains Mono',monospace; }
+    .nat-pill { font-size:10px; font-weight:600; padding:3px 9px; border-radius:20px; letter-spacing:.3px; white-space:nowrap; }
+    .nat-deudora   { background:#e8f4fd; color:#1565a8; }
+    .nat-acreedora { background:#fef9e7; color:#a07a10; }
+    .clas-pill { font-size:10px; font-weight:600; padding:3px 9px; border-radius:20px; background:var(--accent-bg); color:var(--accent); white-space:nowrap; }
+    .cuenta-tipo-label { font-size:11px; font-weight:600; min-width:62px; text-align:center; }
+    .cuenta-row-actions { display:flex; gap:2px; justify-content:flex-end; }
+
+    /* Modal radio buttons */
+    .radio-group { display:flex; flex-direction:column; gap:8px; }
+    .radio-opt { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:var(--r-md); border:1.5px solid var(--border); cursor:pointer; transition:all .12s; }
+    .radio-opt:hover { border-color:var(--border2); background:var(--surface2); }
+    .radio-opt.selected { border-color:var(--accent); background:var(--accent-bg); }
+    .radio-opt.selected .radio-circle { border-color:var(--accent); }
+    .radio-opt.selected .radio-dot    { background:var(--accent); opacity:1; }
+    /* Colores por tipo */
+    .radio-opt.sel-ingreso { border-color:var(--ingreso); background:var(--ingreso-bg); }
+    .radio-opt.sel-ingreso .radio-circle { border-color:var(--ingreso); }
+    .radio-opt.sel-ingreso .radio-dot    { background:var(--ingreso); opacity:1; }
+    .radio-opt.sel-gasto   { border-color:var(--gasto);   background:var(--gasto-bg); }
+    .radio-opt.sel-gasto   .radio-circle { border-color:var(--gasto); }
+    .radio-opt.sel-gasto   .radio-dot    { background:var(--gasto); opacity:1; }
+    .radio-opt.sel-activo  { border-color:var(--activo);  background:var(--activo-bg); }
+    .radio-opt.sel-activo  .radio-circle { border-color:var(--activo); }
+    .radio-opt.sel-activo  .radio-dot    { background:var(--activo); opacity:1; }
+    .radio-opt.sel-pasivo  { border-color:var(--pasivo);  background:var(--pasivo-bg); }
+    .radio-opt.sel-pasivo  .radio-circle { border-color:var(--pasivo); }
+    .radio-opt.sel-pasivo  .radio-dot    { background:var(--pasivo); opacity:1; }
+    .radio-opt.sel-capital { border-color:var(--capital); background:var(--capital-bg); }
+    .radio-opt.sel-capital .radio-circle { border-color:var(--capital); }
+    .radio-opt.sel-capital .radio-dot    { background:var(--capital); opacity:1; }
+    .radio-circle { width:20px; height:20px; border-radius:50%; border:2px solid var(--border2); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:border-color .12s; }
+    .radio-dot    { width:10px; height:10px; border-radius:50%; background:transparent; opacity:0; transition:opacity .12s, background .12s; }
+    .radio-label  { font-size:13px; font-weight:500; color:var(--text); }
+
+    .section-label { font-size:12px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; margin-top:4px; }
+
+    .nat-toggle { display:flex; border-radius:var(--r-md); overflow:hidden; border:1.5px solid var(--border); }
+    .nat-btn { padding:8px 20px; border:none; background:transparent; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; transition:all .12s; color:var(--text3); }
+    .nat-btn.active.deudora   { background:#e8f4fd; color:#1565a8; }
+    .nat-btn.active.acreedora { background:#fef9e7; color:#a07a10; }
+    .nat-btn:not(.active):hover { background:var(--bg); color:var(--text); }
+
+    @media(max-width:700px){ .tipo-summary{ grid-template-columns:repeat(3,1fr); } }
+  </style>
+</head>
+<body>
+
+<div id="sidebar-root"></div>
+<div class="main-content">
+  <div id="topbar-root"></div>
+  <div class="page-body">
+
+    <div class="tipo-summary" id="tipo-summary"></div>
+
+    <div class="catalogo-toolbar">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <div class="search-wrap" style="max-width:260px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="search-input" placeholder="Buscar cuenta..." />
+        </div>
+        <span style="font-size:12px;color:var(--text3);" id="counter"></span>
+      </div>
+      <button class="btn btn-primary" onclick="openModalNueva()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nueva cuenta
+      </button>
+    </div>
+
+    <div id="cuentas-list"></div>
+
+  </div>
+</div>
+
+<!-- ══ MODAL CUENTA ══ -->
+<div class="modal-overlay" id="modal-cuenta">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Nueva cuenta</span>
+      <button class="btn btn-icon del" onclick="closeModal('modal-cuenta')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto;">
+      <input type="hidden" id="cuenta-edit-id" />
+
+      <div class="form-group">
+        <label>Nombre de la cuenta *</label>
+        <input id="cuenta-nombre" type="text" placeholder="Ej. Clientes" />
+      </div>
+      <div class="form-row">
+        <div class="form-group mono">
+          <label>Código contable *</label>
+          <input id="cuenta-codigo" type="text" placeholder="Ej. 1.1.03" />
+        </div>
+      </div>
+
+      <!-- TIPO -->
+      <div class="form-group">
+        <div class="section-label">Tipo de cuenta</div>
+        <div class="radio-group" id="tipo-radios"></div>
+      </div>
+
+      <!-- CLASIFICACIÓN (aparece si tipo = INGRESO o GASTO) -->
+      <div id="clas-wrap" style="display:none;">
+        <div class="form-group">
+          <div class="section-label">Clasificación</div>
+          <div class="radio-group" id="clas-radios"></div>
+        </div>
+      </div>
+
+      <!-- NATURALEZA -->
+      <div class="form-group">
+        <div class="section-label">Naturaleza</div>
+        <small style="color:var(--text3);font-size:11px;display:block;margin-bottom:8px;">Se sugiere automáticamente según el tipo seleccionado</small>
+        <div class="nat-toggle">
+          <button class="nat-btn deudora active" id="nat-deudora-btn" onclick="setNat('DEUDORA')">DEUDORA</button>
+          <button class="nat-btn acreedora" id="nat-acreedora-btn" onclick="setNat('ACREEDORA')">ACREEDORA</button>
+        </div>
+      </div>
+      <input type="hidden" id="cuenta-naturaleza" value="DEUDORA" />
+      <input type="hidden" id="cuenta-tipo-val" />
+      <input type="hidden" id="cuenta-clas-val" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-cuenta')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarCuenta()">Guardar cuenta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL ELIMINAR ══ -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal" style="max-width:370px;">
+    <div class="modal-header"><span class="modal-title">¿Eliminar cuenta?</span></div>
+    <div class="modal-body"><p style="font-size:14px;color:var(--text2);line-height:1.7;">Vas a eliminar <strong id="del-nombre"></strong>. Esta acción no se puede deshacer.</p></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-delete')">Cancelar</button>
+      <button class="btn btn-danger" onclick="confirmarDelete()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+document.getElementById('sidebar-root').innerHTML = renderSidebar();
+document.getElementById('topbar-root').innerHTML  = renderTopbar('Catálogo de Cuentas');
+
+const TIPO_ICONS  = { ACTIVO:'🏦', PASIVO:'📋', CAPITAL:'💼', INGRESO:'📈', GASTO:'📉' };
+const TIPO_LABELS = { ACTIVO:'Activo', PASIVO:'Pasivo', CAPITAL:'Capital', INGRESO:'Ingreso', GASTO:'Gasto' };
+const TIPOS = ['ACTIVO','PASIVO','CAPITAL','INGRESO','GASTO'];
+
+// Clasificaciones por tipo
+const CLASIFICACIONES = {
+  INGRESO: ['Ingreso Ordinario', 'Otro Ingreso'],
+  GASTO:   ['Gasto de Venta', 'Gasto de Administración', 'Otro Gasto', 'Compra', 'Costo de Ventas / Impuesto'],
+};
+const NAT_DEFAULT = { ACTIVO:'DEUDORA', PASIVO:'ACREEDORA', CAPITAL:'ACREEDORA', INGRESO:'ACREEDORA', GASTO:'DEUDORA' };
+
+let filtroActivo = 'TODAS';
+let searchQ = '';
+let deleteId = null;
+
+// ── Chips resumen ──
+function renderChips(){
+  const all = DB.getCuentas();
+  document.getElementById('tipo-summary').innerHTML = TIPOS.map(t => {
+    const cnt = all.filter(c=>c.tipo===t).length;
+    return `<div class="tipo-chip ${t.toLowerCase()} ${filtroActivo===t?'active':''}" onclick="setFiltro('${t}')">
+      <div class="tipo-chip-icon">${TIPO_ICONS[t]}</div>
+      <div class="tipo-chip-label">${TIPO_LABELS[t]}</div>
+      <div class="tipo-chip-count">${cnt}</div>
+    </div>`;
+  }).join('');
+}
+
+function setFiltro(t){
+  filtroActivo = filtroActivo===t ? 'TODAS' : t;
+  renderChips(); renderLista();
+}
+
+// ── Lista ──
+function renderLista(){
+  let cuentas = DB.getCuentas();
+  if(filtroActivo!=='TODAS') cuentas = cuentas.filter(c=>c.tipo===filtroActivo);
+  if(searchQ){ const q=searchQ.toLowerCase(); cuentas=cuentas.filter(c=>c.nombre.toLowerCase().includes(q)||c.codigo.toLowerCase().includes(q)); }
+
+  const total = DB.getCuentas().length;
+  document.getElementById('counter').textContent = cuentas.length===total ? `${total} cuentas` : `${cuentas.length} de ${total}`;
+
+  const list = document.getElementById('cuentas-list');
+  if(!cuentas.length){
+    list.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><p>No se encontraron cuentas</p><button class="btn btn-primary" onclick="openModalNueva()">Agregar cuenta</button></div>`;
+    return;
+  }
+
+  list.innerHTML = `<div class="cuentas-grid">${cuentas.map(c=>`
+    <div class="cuenta-row">
+      <div class="cuenta-stripe" style="background:${TIPO_COLOR[c.tipo]};"></div>
+      <div class="cuenta-nombre-wrap">
+        <span class="cuenta-nombre">${c.nombre}</span>
+        <span class="cuenta-codigo">${c.codigo}</span>
+      </div>
+      ${c.clasificacion ? `<span class="clas-pill">${c.clasificacion}</span>` : '<span></span>'}
+      <span class="nat-pill nat-${c.naturaleza.toLowerCase()}">${c.naturaleza}</span>
+      <span class="cuenta-tipo-label" style="color:${TIPO_COLOR[c.tipo]};">${TIPO_LABELS[c.tipo]}</span>
+      <div class="cuenta-row-actions">
+        <button class="btn btn-icon edit" onclick="openModalEditar('${c.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn btn-icon del" onclick="pedirDelete('${c.id}','${c.nombre.replace(/'/g,"\\'")}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+// ── Radios de tipo ──
+function renderTipoRadios(selTipo){
+  document.getElementById('tipo-radios').innerHTML = TIPOS.map(t=>`
+    <div class="radio-opt ${selTipo===t?'selected sel-'+t.toLowerCase():''}" onclick="selTipo('${t}')">
+      <div class="radio-circle"><div class="radio-dot"></div></div>
+      <span class="radio-label" style="color:${selTipo===t?TIPO_COLOR[t]:'var(--text)'};font-weight:${selTipo===t?'600':'400'};">${t}</span>
+    </div>`).join('');
+}
+
+function selTipo(t){
+  document.getElementById('cuenta-tipo-val').value = t;
+  document.getElementById('cuenta-clas-val').value = '';
+  renderTipoRadios(t);
+  setNat(NAT_DEFAULT[t]);
+  // Mostrar/ocultar clasificación
+  const wrap = document.getElementById('clas-wrap');
+  if(CLASIFICACIONES[t]){
+    wrap.style.display = 'block';
+    renderClasRadios(t, '');
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+// ── Radios de clasificación ──
+function renderClasRadios(tipo, selClas){
+  const opts = CLASIFICACIONES[tipo] || [];
+  document.getElementById('clas-radios').innerHTML = opts.map(c=>`
+    <div class="radio-opt ${selClas===c?'selected sel-'+tipo.toLowerCase():''}" onclick="selClas('${c.replace(/'/g,"\\'")}','${tipo}')">
+      <div class="radio-circle"><div class="radio-dot"></div></div>
+      <span class="radio-label" style="color:${selClas===c?TIPO_COLOR[tipo]:'var(--text)'};font-weight:${selClas===c?'600':'400'};">${c}</span>
+    </div>`).join('');
+}
+
+function selClas(c, tipo){
+  document.getElementById('cuenta-clas-val').value = c;
+  renderClasRadios(tipo, c);
+}
+
+// ── Naturaleza ──
+function setNat(val){
+  document.getElementById('cuenta-naturaleza').value = val;
+  document.getElementById('nat-deudora-btn').className   = 'nat-btn deudora'   + (val==='DEUDORA'  ?'  active':'');
+  document.getElementById('nat-acreedora-btn').className = 'nat-btn acreedora' + (val==='ACREEDORA'?' active':'');
+}
+
+// ── Modals ──
+function openModalNueva(){
+  document.getElementById('cuenta-edit-id').value = '';
+  document.getElementById('cuenta-nombre').value  = '';
+  document.getElementById('cuenta-codigo').value  = '';
+  document.getElementById('cuenta-tipo-val').value = '';
+  document.getElementById('cuenta-clas-val').value = '';
+  document.getElementById('clas-wrap').style.display = 'none';
+  renderTipoRadios('');
+  setNat('DEUDORA');
+  document.getElementById('modal-title').textContent = 'Nueva cuenta';
+  openModal('modal-cuenta');
+  setTimeout(()=>document.getElementById('cuenta-nombre').focus(),120);
+}
+
+function openModalEditar(id){
+  const c = DB.getCuentaById(id); if(!c) return;
+  document.getElementById('cuenta-edit-id').value  = c.id;
+  document.getElementById('cuenta-nombre').value   = c.nombre;
+  document.getElementById('cuenta-codigo').value   = c.codigo;
+  document.getElementById('cuenta-tipo-val').value = c.tipo;
+  document.getElementById('cuenta-clas-val').value = c.clasificacion||'';
+  renderTipoRadios(c.tipo);
+  if(CLASIFICACIONES[c.tipo]){
+    document.getElementById('clas-wrap').style.display = 'block';
+    renderClasRadios(c.tipo, c.clasificacion||'');
+  } else {
+    document.getElementById('clas-wrap').style.display = 'none';
+  }
+  setNat(c.naturaleza);
+  document.getElementById('modal-title').textContent = 'Editar cuenta';
+  openModal('modal-cuenta');
+}
+
+function guardarCuenta(){
+  const nombre     = document.getElementById('cuenta-nombre').value.trim();
+  const codigo     = document.getElementById('cuenta-codigo').value.trim();
+  const tipo       = document.getElementById('cuenta-tipo-val').value;
+  const naturaleza = document.getElementById('cuenta-naturaleza').value;
+  const clas       = document.getElementById('cuenta-clas-val').value;
+  const editId     = document.getElementById('cuenta-edit-id').value;
+
+  if(!nombre||!codigo||!tipo||!naturaleza){ showToast('Completa todos los campos','error'); return; }
+  if(CLASIFICACIONES[tipo] && !clas){ showToast('Selecciona una clasificación','error'); return; }
+
+  const data = { nombre, codigo, tipo, naturaleza, clasificacion: clas||'' };
+  if(editId){ DB.updateCuenta(editId, data); showToast('Cuenta actualizada','success'); }
+  else       { DB.addCuenta(data);           showToast('Cuenta agregada','success'); }
+
+  closeModal('modal-cuenta');
+  renderChips(); renderLista();
+}
+
+function pedirDelete(id, nombre){
+  deleteId = id;
+  document.getElementById('del-nombre').textContent = nombre;
+  openModal('modal-delete');
+}
+function confirmarDelete(){
+  if(!deleteId) return;
+  DB.deleteCuenta(deleteId); deleteId=null;
+  closeModal('modal-delete'); renderChips(); renderLista();
+  showToast('Cuenta eliminada','info');
+}
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
+document.getElementById('search-input').addEventListener('input', e=>{ searchQ=e.target.value.trim(); renderLista(); });
+document.getElementById('modal-cuenta').addEventListener('keydown', e=>{ if(e.key==='Enter') guardarCuenta(); });
+
+renderChips(); renderLista();
+</script>
+</body>
+</html>
