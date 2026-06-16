@@ -4,6 +4,26 @@
   <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>WebConta — Panel de Control</title>
   <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .empresa-banner {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--r-xl); padding:18px 22px; margin-bottom:22px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:16px; box-shadow:var(--shadow-xs); flex-wrap:wrap;
+    }
+    .empresa-info { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+    .empresa-avatar {
+      width:48px; height:48px; border-radius:var(--r-lg);
+      background:var(--accent); display:flex; align-items:center;
+      justify-content:center; font-size:20px; font-weight:700;
+      color:#fff; flex-shrink:0; letter-spacing:-1px;
+    }
+    .empresa-nombre { font-size:16px; font-weight:700; letter-spacing:-.3px; }
+    .empresa-meta   { display:flex; gap:14px; flex-wrap:wrap; margin-top:3px; }
+    .empresa-chip   { font-size:11px; color:var(--text3); display:flex; align-items:center; gap:4px; }
+    .empresa-chip svg { width:12px; height:12px; }
+    .empresa-sin    { color:var(--text3); font-size:14px; }
+  </style>
 </head>
 <body>
 <div id="sidebar-root"></div>
@@ -11,22 +31,31 @@
   <div id="topbar-root"></div>
   <div class="page-body">
 
-    <div class="company-section">
-      <div><label>Empresa</label><input id="co-nombre" placeholder="Mi Empresa S.A. de C.V."/></div>
-      <div><label>RFC</label><input id="co-rfc" placeholder="MEM900101XXX"/></div>
-      <div><label>Ejercicio</label><input id="co-ejercicio" placeholder="2024"/></div>
+    <!-- Banner empresa -->
+    <div class="empresa-banner" id="empresa-banner">
+      <div class="empresa-info" id="empresa-info">
+        <div class="empresa-avatar" id="emp-avatar">?</div>
+        <div>
+          <div class="empresa-nombre" id="emp-nombre-display">Sin empresa configurada</div>
+          <div class="empresa-meta" id="emp-meta"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openEmpresaModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Configurar empresa
+      </button>
     </div>
 
     <div class="stats-grid" id="stats-grid"></div>
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:26px;">
-      <a href="catalogo.html"       class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--accent-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">📒</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Catálogo de Cuentas</div><div class="text3" style="font-size:12px;" id="qs-cuentas">cargando...</div></div></a>
-      <a href="transacciones.html"  class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--green-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">✏️</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Nueva Transacción</div><div class="text3" style="font-size:12px;">Registrar asiento</div></div></a>
-      <a href="diario.html"         class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--purple-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">📖</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Libro Diario</div><div class="text3" style="font-size:12px;" id="qs-asientos">cargando...</div></div></a>
-      <a href="mayor.html"          class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--blue-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">🗂️</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Libro Mayor</div><div class="text3" style="font-size:12px;">Saldos por cuenta</div></div></a>
-      <a href="estados.html"        class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--orange-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">📊</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Resultado Integral</div><div class="text3" style="font-size:12px;">Automático del diario</div></div></a>
-      <a href="balanza.html"        class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--accent-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">🧾</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Balanza de Comprobación</div><div class="text3" style="font-size:12px;">Debe = Haber · Saldos</div></div></a>
-      <a href="balance.html"        class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--capital-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">⚖️</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Balance General</div><div class="text3" style="font-size:12px;">Activo = Pasivo + Capital</div></div></a>
+      <a href="catalogo.html"   class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--accent-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;font-size:18px;">📒</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Catálogo de Cuentas</div><div class="text3" style="font-size:12px;" id="qs-cuentas">cargando...</div></div></a>
+      <a href="transacciones.html" class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--green-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;font-size:18px;">✏️</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Nueva Transacción</div><div class="text3" style="font-size:12px;">Registrar asiento</div></div></a>
+      <a href="diario.html"     class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--purple-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;font-size:18px;">📖</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Libro Diario</div><div class="text3" style="font-size:12px;" id="qs-asientos">cargando...</div></div></a>
+      <a href="mayor.html"      class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--blue-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;font-size:18px;">🗂️</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Libro Mayor</div><div class="text3" style="font-size:12px;">Saldos por cuenta</div></div></a>
+      <a href="estados.html"    class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--orange-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;font-size:18px;">📊</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Resultado Integral</div><div class="text3" style="font-size:12px;">Automático del diario</div></div></a>
+      <a href="balanza.html"    class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--accent-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;font-size:18px;">🧾</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Balanza de Comprobación</div><div class="text3" style="font-size:12px;">Debe = Haber · Saldos</div></div></a>
+      <a href="balance.html"    class="card" style="text-decoration:none;padding:18px;display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:var(--capital-bg);border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;font-size:18px;">⚖️</div><div><div style="font-weight:600;font-size:13px;margin-bottom:2px;">Balance General</div><div class="text3" style="font-size:12px;">Activo = Pasivo + Capital</div></div></a>
     </div>
 
     <div class="card">
@@ -36,52 +65,172 @@
 
   </div>
 </div>
+
+<!-- ══ MODAL EMPRESA ══ -->
+<div class="modal-overlay" id="modal-empresa">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-header">
+      <span class="modal-title">Datos de la empresa</span>
+      <button class="btn btn-icon del" onclick="closeModal('modal-empresa')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nombre / Razón Social *</label>
+        <input id="emp-razon" type="text" placeholder="Ej. Comercial Reyes S.A. de C.V."/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>RFC *</label>
+          <input id="emp-rfc" type="text" placeholder="Ej. CRE900101XXX" style="text-transform:uppercase;"/>
+        </div>
+        <div class="form-group">
+          <label>Ejercicio fiscal</label>
+          <input id="emp-ejercicio" type="number" placeholder="2024"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Período del estado</label>
+        <div class="form-row">
+          <input id="emp-periodo-ini" type="date"/>
+          <input id="emp-periodo-fin" type="date"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Dirección</label>
+        <input id="emp-calle" type="text" placeholder="Calle y número"/>
+      </div>
+      <div class="form-row cols-3">
+        <div class="form-group">
+          <label>Colonia</label>
+          <input id="emp-colonia" type="text" placeholder="Colonia"/>
+        </div>
+        <div class="form-group">
+          <label>Ciudad</label>
+          <input id="emp-ciudad" type="text" placeholder="Ciudad"/>
+        </div>
+        <div class="form-group">
+          <label>C.P.</label>
+          <input id="emp-cp" type="text" placeholder="00000"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Estado</label>
+          <input id="emp-estado" type="text" placeholder="Ej. Puebla"/>
+        </div>
+        <div class="form-group">
+          <label>País</label>
+          <input id="emp-pais" type="text" placeholder="México"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('modal-empresa')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEmpresa()">Guardar empresa</button>
+    </div>
+  </div>
+</div>
+
 <script src="shared.js"></script>
 <script>
   document.getElementById('sidebar-root').innerHTML = renderSidebar();
   document.getElementById('topbar-root').innerHTML  = renderTopbar('Panel de Control');
 
-  function saveEmpresa(){
-    DB.saveEmpresa({ nombre:document.getElementById('co-nombre').value, rfc:document.getElementById('co-rfc').value.toUpperCase(), ejercicio:document.getElementById('co-ejercicio').value });
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
+
+  function openEmpresaModal(){
+    var e = DB.getEmpresa();
+    document.getElementById('emp-razon').value       = e.razon||'';
+    document.getElementById('emp-rfc').value         = e.rfc||'';
+    document.getElementById('emp-ejercicio').value   = e.ejercicio||'';
+    document.getElementById('emp-periodo-ini').value = e.periodoIni||'';
+    document.getElementById('emp-periodo-fin').value = e.periodoFin||'';
+    document.getElementById('emp-calle').value       = e.calle||'';
+    document.getElementById('emp-colonia').value     = e.colonia||'';
+    document.getElementById('emp-ciudad').value      = e.ciudad||'';
+    document.getElementById('emp-cp').value          = e.cp||'';
+    document.getElementById('emp-estado').value      = e.estado||'';
+    document.getElementById('emp-pais').value        = e.pais||'México';
+    openModal('modal-empresa');
   }
-  ['co-nombre','co-rfc','co-ejercicio'].forEach(id=>document.getElementById(id).addEventListener('input',saveEmpresa));
+
+  function guardarEmpresa(){
+    var data = {
+      razon:      document.getElementById('emp-razon').value.trim(),
+      rfc:        document.getElementById('emp-rfc').value.trim().toUpperCase(),
+      ejercicio:  document.getElementById('emp-ejercicio').value.trim(),
+      periodoIni: document.getElementById('emp-periodo-ini').value,
+      periodoFin: document.getElementById('emp-periodo-fin').value,
+      calle:      document.getElementById('emp-calle').value.trim(),
+      colonia:    document.getElementById('emp-colonia').value.trim(),
+      ciudad:     document.getElementById('emp-ciudad').value.trim(),
+      cp:         document.getElementById('emp-cp').value.trim(),
+      estado:     document.getElementById('emp-estado').value.trim(),
+      pais:       document.getElementById('emp-pais').value.trim()||'México',
+    };
+    if(!data.razon){ showToast('El nombre/razón social es obligatorio','error'); return; }
+    DB.saveEmpresa(data);
+    closeModal('modal-empresa');
+    renderEmpresaBanner();
+    showToast('Empresa guardada ✓','success');
+  }
+
+  function renderEmpresaBanner(){
+    var e = DB.getEmpresa();
+    if(!e.razon){
+      document.getElementById('emp-avatar').textContent = '?';
+      document.getElementById('emp-nombre-display').textContent = 'Sin empresa configurada';
+      document.getElementById('emp-meta').innerHTML = '<span class="empresa-chip" style="color:var(--accent);">Haz clic en "Configurar empresa" para comenzar</span>';
+      return;
+    }
+    // Avatar: iniciales
+    var iniciales = e.razon.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase();
+    document.getElementById('emp-avatar').textContent = iniciales;
+    document.getElementById('emp-nombre-display').textContent = e.razon;
+    var meta = [];
+    if(e.rfc)       meta.push('<span class="empresa-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>'+e.rfc+'</span>');
+    if(e.ejercicio) meta.push('<span class="empresa-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Ejercicio '+e.ejercicio+'</span>');
+    if(e.ciudad)    meta.push('<span class="empresa-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'+e.ciudad+(e.estado?', '+e.estado:'')+'</span>');
+    if(e.periodoIni && e.periodoFin) meta.push('<span class="empresa-chip">📅 '+fmtFecha(e.periodoIni)+' al '+fmtFecha(e.periodoFin)+'</span>');
+    document.getElementById('emp-meta').innerHTML = meta.join('');
+  }
 
   function load(){
-    const e=DB.getEmpresa();
-    document.getElementById('co-nombre').value    = e.nombre||'';
-    document.getElementById('co-rfc').value       = e.rfc||'';
-    document.getElementById('co-ejercicio').value = e.ejercicio||'';
+    renderEmpresaBanner();
+    var cuentas=DB.getCuentas(), asientos=DB.getAsientos();
+    var S=DB.getSaldosCuentas(asientos);
+    var tD=asientos.reduce(function(s,a){ return s+a.movimientos.filter(function(m){ return m.tipo==='DEBE'; }).reduce(function(ss,m){ return ss+(parseFloat(m.monto)||0); },0); },0);
+    var tH=asientos.reduce(function(s,a){ return s+a.movimientos.filter(function(m){ return m.tipo==='HABER'; }).reduce(function(ss,m){ return ss+(parseFloat(m.monto)||0); },0); },0);
+    var utilNeta = Object.values(S).filter(function(c){ return c.tipo==='INGRESO'; }).reduce(function(s,c){ return s+c.saldo; },0)
+                 - Object.values(S).filter(function(c){ return c.tipo==='GASTO'; }).reduce(function(s,c){ return s+c.saldo; },0);
 
-    const cuentas=DB.getCuentas(), asientos=DB.getAsientos();
-    const S=DB.getSaldosCuentas(asientos);
-    const tD=asientos.reduce((s,a)=>s+a.movimientos.filter(m=>m.tipo==='DEBE').reduce((ss,m)=>ss+(parseFloat(m.monto)||0),0),0);
-    const tH=asientos.reduce((s,a)=>s+a.movimientos.filter(m=>m.tipo==='HABER').reduce((ss,m)=>ss+(parseFloat(m.monto)||0),0),0);
-    const utilNeta = Object.values(S).filter(c=>c.tipo==='INGRESO').reduce((s,c)=>s+c.saldo,0)
-                   - Object.values(S).filter(c=>c.tipo==='GASTO').reduce((s,c)=>s+c.saldo,0);
+    document.getElementById('stats-grid').innerHTML =
+      '<div class="stat-card"><div class="s-label">Cuentas</div><div class="s-value" style="color:var(--accent);">'+cuentas.length+'</div><div class="s-sub">en catálogo</div></div>'+
+      '<div class="stat-card"><div class="s-label">Asientos</div><div class="s-value" style="color:var(--purple);">'+asientos.length+'</div><div class="s-sub">registrados</div></div>'+
+      '<div class="stat-card"><div class="s-label">Total Debe</div><div class="s-value pos">'+fmt(tD)+'</div></div>'+
+      '<div class="stat-card"><div class="s-label">Total Haber</div><div class="s-value neg">'+fmt(tH)+'</div></div>'+
+      '<div class="stat-card"><div class="s-label">Utilidad neta</div><div class="s-value '+(utilNeta>=0?'pos':'neg')+'">'+fmt(utilNeta)+'</div></div>';
 
-    document.getElementById('stats-grid').innerHTML = `
-      <div class="stat-card"><div class="s-label">Cuentas</div><div class="s-value" style="color:var(--accent);">${cuentas.length}</div><div class="s-sub">en catálogo</div></div>
-      <div class="stat-card"><div class="s-label">Asientos</div><div class="s-value" style="color:var(--purple);">${asientos.length}</div><div class="s-sub">registrados</div></div>
-      <div class="stat-card"><div class="s-label">Total Debe</div><div class="s-value pos">${fmt(tD)}</div></div>
-      <div class="stat-card"><div class="s-label">Total Haber</div><div class="s-value neg">${fmt(tH)}</div></div>
-      <div class="stat-card"><div class="s-label">Utilidad neta</div><div class="s-value ${utilNeta>=0?'pos':'neg'}">${fmt(utilNeta)}</div></div>
-    `;
     document.getElementById('qs-cuentas').textContent  = cuentas.length+' cuentas';
     document.getElementById('qs-asientos').textContent = asientos.length+' asientos';
 
-    const ul=document.getElementById('ultimas-list');
-    const rec=asientos.slice(0,6);
-    if(!rec.length){ ul.innerHTML=`<div class="empty-state" style="padding:28px;"><p>Sin transacciones</p><a href="transacciones.html" class="btn btn-primary">Registrar primera</a></div>`; return; }
-    ul.innerHTML = rec.map(a=>{
-      const tot=a.movimientos.filter(m=>m.tipo==='DEBE').reduce((s,m)=>s+(parseFloat(m.monto)||0),0);
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 22px;border-bottom:1px solid var(--border);gap:12px;">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);background:var(--accent-bg);padding:2px 7px;border-radius:4px;flex-shrink:0;">${a.id}</span>
-        <span style="flex:1;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.descripcion}</span>
-        <span style="font-size:11px;color:var(--text3);flex-shrink:0;">${fmtFecha(a.fecha)}</span>
-        <span class="badge badge-info mono" style="flex-shrink:0;">${fmt(tot)}</span>
-      </div>`;
+    var ul=document.getElementById('ultimas-list'), rec=asientos.slice(0,6);
+    if(!rec.length){ ul.innerHTML='<div class="empty-state" style="padding:28px;"><p>Sin transacciones</p><a href="transacciones.html" class="btn btn-primary">Registrar primera</a></div>'; return; }
+    ul.innerHTML = rec.map(function(a){
+      var tot=a.movimientos.filter(function(m){ return m.tipo==='DEBE'; }).reduce(function(s,m){ return s+(parseFloat(m.monto)||0); },0);
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 22px;border-bottom:1px solid var(--border);gap:12px;">'
+        +'<span style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--accent);background:var(--accent-bg);padding:2px 7px;border-radius:4px;flex-shrink:0;">'+a.id+'</span>'
+        +'<span style="flex:1;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+a.descripcion+'</span>'
+        +'<span style="font-size:11px;color:var(--text3);flex-shrink:0;">'+fmtFecha(a.fecha)+'</span>'
+        +'<span class="badge badge-info mono" style="flex-shrink:0;">'+fmt(tot)+'</span>'
+        +'</div>';
     }).join('');
   }
+
   load();
 </script>
 </body>

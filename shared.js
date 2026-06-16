@@ -85,7 +85,10 @@ const DB = {
   },
   deleteAsiento(id) { this.saveAsientos(this.getAsientos().filter(a=>a.id!==id)); },
 
-  getEmpresa() { const r=localStorage.getItem('fin_empresa'); return r?JSON.parse(r):{nombre:'Mi Empresa',rfc:'',ejercicio:new Date().getFullYear()}; },
+  getEmpresa() {
+    const r=localStorage.getItem('fin_empresa');
+    return r ? JSON.parse(r) : {razon:'',rfc:'',ejercicio:'',periodoIni:'',periodoFin:'',calle:'',colonia:'',ciudad:'',cp:'',estado:'',pais:'México'};
+  },
   saveEmpresa(d) { localStorage.setItem('fin_empresa', JSON.stringify(d)); },
 
   /* ── Calcular saldos netos por cuenta desde asientos ── */
@@ -235,3 +238,102 @@ function checkMobile() {
   if(window.innerWidth>768){ document.getElementById('sidebar')?.classList.remove('open'); const ov=document.getElementById('sidebar-overlay'); if(ov) ov.style.display='none'; }
 }
 document.addEventListener('DOMContentLoaded',()=>{ checkMobile(); window.addEventListener('resize',checkMobile); markActiveNav(); initSidebarToggle(); });
+
+/* ══ EMPRESA HEADER PARA PDF ══ */
+function getEmpresaHeader(titulo, subtitulo){
+  const e = DB.getEmpresa();
+  const nombre  = e.razon || 'Sin empresa configurada';
+  const rfc     = e.rfc   || '';
+  const ejercicio = e.ejercicio || '';
+  const dir     = [e.calle, e.colonia, e.ciudad+(e.estado?', '+e.estado:''), e.cp, e.pais].filter(Boolean).join(', ');
+  const periodo = (e.periodoIni && e.periodoFin)
+    ? 'Del '+fmtFecha(e.periodoIni)+' al '+fmtFecha(e.periodoFin)
+    : (ejercicio ? 'Ejercicio '+ejercicio : '');
+
+  return `
+    <div class="pdf-header">
+      <div class="pdf-header-top">
+        <div class="pdf-logo-mark">${nombre.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'WC'}</div>
+        <div class="pdf-empresa-data">
+          <div class="pdf-empresa-nombre">${nombre}</div>
+          ${rfc ? `<div class="pdf-empresa-meta">RFC: ${rfc}</div>` : ''}
+          ${dir ? `<div class="pdf-empresa-meta">${dir}</div>` : ''}
+        </div>
+        <div class="pdf-doc-info">
+          <div class="pdf-doc-titulo">${titulo}</div>
+          ${subtitulo ? `<div class="pdf-doc-sub">${subtitulo}</div>` : ''}
+          ${periodo   ? `<div class="pdf-doc-sub">${periodo}</div>`   : ''}
+          <div class="pdf-doc-fecha">Generado: ${fmtFecha(new Date().toISOString().split('T')[0])}</div>
+        </div>
+      </div>
+      <div class="pdf-header-line"></div>
+    </div>`;
+}
+
+/* ══ ESTILOS PDF (inyectar en <head> de cada página al imprimir) ══ */
+const PDF_STYLES = `
+  @media print {
+    .sidebar, .topbar, .period-bar, .btn, .info-grid,
+    #sidebar-root, #topbar-root, .topbar-actions,
+    .cuenta-actions, .modal-overlay, .stats-grid,
+    .add-mov-btn, .action-bar { display:none !important; }
+    .main-content { margin-left:0 !important; }
+    body { background:#fff !important; font-family:'Arial',sans-serif; font-size:11pt; color:#000; }
+    .page-body { padding:0 !important; }
+
+    .pdf-header { margin-bottom:16pt; }
+    .pdf-header-top { display:flex; align-items:flex-start; gap:12pt; }
+    .pdf-logo-mark {
+      width:44pt; height:44pt; border-radius:8pt;
+      background:#4a3fbe; color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-size:16pt; font-weight:700; letter-spacing:-1px; flex-shrink:0;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }
+    .pdf-empresa-data { flex:1; }
+    .pdf-empresa-nombre { font-size:14pt; font-weight:700; margin-bottom:2pt; }
+    .pdf-empresa-meta   { font-size:8pt; color:#666; margin-top:1pt; }
+    .pdf-doc-info { text-align:right; flex-shrink:0; }
+    .pdf-doc-titulo { font-size:13pt; font-weight:700; color:#4a3fbe; margin-bottom:2pt; }
+    .pdf-doc-sub  { font-size:8pt; color:#666; margin-top:1pt; }
+    .pdf-doc-fecha{ font-size:7pt; color:#999; margin-top:3pt; }
+    .pdf-header-line { border-top:2pt solid #4a3fbe; margin-top:8pt; }
+
+    /* Tabla general PDF */
+    table { width:100%; border-collapse:collapse; font-size:9pt; }
+    th { background:#4a3fbe !important; color:#fff !important; padding:5pt 8pt; text-align:left; font-size:8pt; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    td { padding:4pt 8pt; border-bottom:0.5pt solid #ddd; }
+    tr:nth-child(even) td { background:#f8f8f8 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    tfoot td { background:#4a3fbe !important; color:#fff !important; font-weight:700; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+    .card, .ef-section, .balanza-wrap, .cuenta-mayor, .asiento-card, .bal-section { box-shadow:none !important; border:0.5pt solid #ccc !important; border-radius:4pt !important; }
+    .ef-row, .ef-hdr, .balanza-table td, .balanza-table th { border-color:#ddd !important; }
+    .ef-num, .c-debe, .c-hab, .c-sd, .c-sa { color:#000 !important; }
+    .ef-num.acc, .ef-num.grn { color:#1a5a1a !important; }
+    .ef-num.neg, .ef-num.red { color:#8b0000 !important; }
+  }
+`;
+
+function injectPDFStyles(){
+  if(!document.getElementById('pdf-styles')){
+    const s = document.createElement('style');
+    s.id = 'pdf-styles';
+    s.textContent = PDF_STYLES;
+    document.head.appendChild(s);
+  }
+}
+
+function printWithHeader(titulo, subtitulo){
+  injectPDFStyles();
+  // Inyectar header si no existe
+  const existing = document.getElementById('pdf-empresa-header');
+  if(existing) existing.remove();
+  const headerDiv = document.createElement('div');
+  headerDiv.id = 'pdf-empresa-header';
+  headerDiv.innerHTML = getEmpresaHeader(titulo, subtitulo);
+  const pageBody = document.querySelector('.page-body');
+  if(pageBody) pageBody.insertBefore(headerDiv, pageBody.firstChild);
+  window.print();
+  // Limpiar después
+  setTimeout(()=>{ const h=document.getElementById('pdf-empresa-header'); if(h) h.remove(); }, 1000);
+}

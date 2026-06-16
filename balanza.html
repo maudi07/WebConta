@@ -12,352 +12,216 @@
       border-radius:var(--r-md); color:var(--text); font-family:inherit;
       font-size:13px; padding:7px 10px; outline:none;
     }
-    .period-bar input[type=date]:focus { border-color:var(--accent); }
-
-    /* Status badge */
-    .status-badge {
-      display:inline-flex; align-items:center; gap:6px;
-      padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600;
-    }
-    .status-badge.ok  { background:var(--green-bg); color:var(--green); }
-    .status-badge.bad { background:var(--red-bg);   color:var(--red); }
-    .status-badge svg { width:14px; height:14px; }
-
-    /* Tabla */
     .balanza-wrap {
       background:var(--surface); border:1px solid var(--border);
       border-radius:var(--r-xl); overflow:hidden; box-shadow:var(--shadow-xs);
     }
+    .balanza-table { width:100%; border-collapse:collapse; font-size:13px; }
 
-    .balanza-table {
-      width:100%; border-collapse:collapse; font-size:13px;
-    }
-
-    /* Header de la tabla */
-    .balanza-table thead tr:first-child th {
+    .balanza-table thead tr.hdr1 th {
       background:var(--accent); color:#fff;
-      padding:12px 14px; text-align:center;
-      font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.6px;
+      padding:11px 14px; font-size:11px; font-weight:700;
+      text-transform:uppercase; letter-spacing:.6px; text-align:center;
     }
-    .balanza-table thead tr:first-child th:first-child { text-align:left; border-radius:var(--r-lg) 0 0 0; }
-    .balanza-table thead tr:first-child th:last-child  { border-radius:0 var(--r-lg) 0 0; }
+    .balanza-table thead tr.hdr1 th:first-child { text-align:left; }
+    .balanza-table thead tr.hdr1 th:nth-child(2) { text-align:left; }
 
-    /* Sub-header de grupos */
-    .balanza-table thead tr.sub-hdr th {
+    .balanza-table thead tr.hdr2 th {
       background:var(--accent-bg); color:var(--accent);
       padding:7px 14px; font-size:10px; font-weight:700;
-      text-transform:uppercase; letter-spacing:.5px; text-align:center;
+      text-transform:uppercase; letter-spacing:.5px; text-align:right;
       border-bottom:2px solid var(--accent-mid);
     }
-    .balanza-table thead tr.sub-hdr th.left { text-align:left; }
+    .balanza-table thead tr.hdr2 th:first-child  { text-align:left; }
+    .balanza-table thead tr.hdr2 th:nth-child(2) { text-align:left; }
 
-    /* Filas de datos */
-    .balanza-table tbody tr { border-bottom:1px solid var(--border); transition:background .1s; }
-    .balanza-table tbody tr:last-child { border-bottom:none; }
+    .balanza-table tbody tr { border-bottom:1px solid var(--border); }
     .balanza-table tbody tr:hover { background:var(--surface2); }
-
-    /* Fila separadora de tipo */
-    .balanza-table tbody tr.tipo-sep td {
-      background:var(--surface2); padding:6px 14px;
+    .balanza-table tbody tr.sep td {
+      background:var(--surface2); padding:5px 14px;
       font-size:10px; font-weight:700; text-transform:uppercase;
-      letter-spacing:.7px; color:var(--text3);
-      border-bottom:1px solid var(--border);
+      letter-spacing:.6px; color:var(--text3);
     }
-    .balanza-table tbody tr.tipo-sep td span {
-      display:inline-flex; align-items:center; gap:6px;
-    }
-    .tipo-sep-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
 
-    /* Celdas */
-    .balanza-table td {
-      padding:9px 14px; vertical-align:middle;
-    }
-    .td-codigo {
-      font-family:'JetBrains Mono',monospace; font-size:11px;
-      color:var(--text3); white-space:nowrap; width:70px;
-    }
-    .td-nombre { color:var(--text); font-weight:500; min-width:180px; }
-    .td-num {
-      font-family:'JetBrains Mono',monospace; font-size:12px;
-      text-align:right; white-space:nowrap; width:130px;
-    }
-    .td-num.debe    { color:var(--green); }
-    .td-num.haber   { color:var(--red); }
-    .td-num.sd      { color:var(--blue); }
-    .td-num.sa      { color:var(--orange); }
-    .td-num.zero    { color:var(--text3); }
+    .balanza-table td { padding:9px 14px; vertical-align:middle; }
+    .c-cod  { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text3); width:75px; }
+    .c-nom  { color:var(--text); font-weight:500; }
+    .c-num  { font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600; text-align:right; width:130px; }
+    .c-debe { color:var(--green); }
+    .c-hab  { color:var(--red); }
+    .c-sd   { color:var(--blue); }
+    .c-sa   { color:var(--orange); }
+    .c-zero { color:var(--text3); font-weight:400; }
 
-    /* Fila de totales */
-    .balanza-table tfoot tr td {
-      padding:12px 14px; font-weight:700;
-      background:var(--accent); color:#fff;
-      font-family:'JetBrains Mono',monospace; font-size:13px;
-      text-align:right; border-top:2px solid var(--accent);
+    .balanza-table tfoot td {
+      padding:11px 14px; font-weight:700; font-size:13px;
+      background:var(--accent); color:#fff; text-align:right;
+      font-family:'JetBrains Mono',monospace;
     }
-    .balanza-table tfoot tr td:first-child {
-      text-align:left; font-family:inherit;
-      font-size:12px; text-transform:uppercase; letter-spacing:.5px;
-      border-radius:0 0 0 var(--r-xl);
-    }
-    .balanza-table tfoot tr td:nth-child(2) { text-align:left; }
-    .balanza-table tfoot tr td:last-child { border-radius:0 0 var(--r-xl) 0; }
+    .balanza-table tfoot td:first-child  { text-align:left; font-family:inherit; font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
+    .balanza-table tfoot td:nth-child(2) { text-align:left; }
 
-    /* Verificación footer */
     .verif-bar {
-      display:flex; align-items:center; gap:16px;
-      padding:14px 20px; background:var(--surface2);
-      border-top:1px solid var(--border); flex-wrap:wrap;
+      display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+      padding:12px 18px; background:var(--surface2); border-top:1px solid var(--border);
+      font-size:12px;
     }
-    .verif-item { display:flex; align-items:center; gap:8px; font-size:12px; }
-    .verif-label { color:var(--text3); font-weight:500; }
-    .verif-val { font-family:'JetBrains Mono',monospace; font-weight:700; }
-    .verif-eq { font-size:16px; color:var(--text3); }
+    .v-item { display:flex; align-items:center; gap:6px; }
+    .v-lbl  { color:var(--text3); }
+    .v-val  { font-family:'JetBrains Mono',monospace; font-weight:700; }
+    .v-ok   { background:var(--green-bg); color:var(--green); padding:2px 10px; border-radius:20px; font-weight:600; font-size:11px; }
+    .v-bad  { background:var(--red-bg);   color:var(--red);   padding:2px 10px; border-radius:20px; font-weight:600; font-size:11px; }
 
-    /* Info cards top */
-    .info-grid {
-      display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-      gap:12px; margin-bottom:20px;
-    }
-
-    /* Empty */
-    .empty-balanza {
-      padding:52px 20px; text-align:center; color:var(--text3);
-    }
-    .empty-balanza svg { width:44px; height:44px; margin-bottom:12px; opacity:.3; }
-    .empty-balanza p { font-size:14px; color:var(--text2); margin-bottom:16px; }
-
-    @media print {
-      .period-bar, .btn { display:none!important; }
-      .balanza-wrap { box-shadow:none; border:1px solid #ccc; }
-      .balanza-table thead tr:first-child th { background:#4a3fbe!important; -webkit-print-color-adjust:exact; }
-    }
+    .info-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:20px; }
+    .empty-state { padding:50px 20px; text-align:center; color:var(--text3); }
+    .empty-state svg { width:44px; height:44px; margin-bottom:12px; opacity:.3; display:block; margin:0 auto 12px; }
+    .empty-state p { font-size:14px; color:var(--text2); margin-bottom:16px; }
   </style>
 </head>
 <body>
+
 <div id="sidebar-root"></div>
 <div class="main-content">
   <div id="topbar-root"></div>
   <div class="page-body">
 
-    <!-- Período -->
     <div class="period-bar">
       <span style="font-size:13px;color:var(--text3);">Del</span>
-      <input type="date" id="f-ini" onchange="render()"/>
+      <input type="date" id="f-ini"/>
       <span style="font-size:13px;color:var(--text3);">al</span>
-      <input type="date" id="f-fin" onchange="render()"/>
+      <input type="date" id="f-fin"/>
       <button class="btn btn-primary btn-sm" onclick="render()">↺ Actualizar</button>
-      <button class="btn btn-sm" onclick="window.print()">⎙ Imprimir</button>
-      <span id="status-badge" style="margin-left:auto;"></span>
+      <button class="btn btn-sm" onclick="printWithHeader('Balanza de Comprobación','')">⎙ Exportar PDF</button>
+      <span id="st-badge" style="margin-left:auto;"></span>
     </div>
 
-    <!-- Info cards -->
     <div class="info-grid" id="info-grid"></div>
-
-    <!-- Tabla -->
-    <div class="balanza-wrap" id="balanza-wrap">
-      <div class="empty-balanza">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="3" y="3" width="18" height="18" rx="2"/>
-          <line x1="3" y1="9" x2="21" y2="9"/>
-          <line x1="9" y1="21" x2="9" y2="9"/>
-        </svg>
-        <p>Cargando balanza...</p>
-      </div>
-    </div>
+    <div class="balanza-wrap" id="balanza-wrap"></div>
 
   </div>
 </div>
 
 <script src="shared.js"></script>
 <script>
-document.getElementById('sidebar-root').innerHTML = renderSidebar();
-document.getElementById('topbar-root').innerHTML  = renderTopbar('Balanza de Comprobación');
+  // ── Inyectar chrome ──
+  document.getElementById('sidebar-root').innerHTML = renderSidebar();
+  document.getElementById('topbar-root').innerHTML  = renderTopbar('Balanza de Comprobación');
 
-// Fechas por defecto: sin filtro (mostrar todos los asientos)
-document.getElementById('f-ini').value = '';
-document.getElementById('f-fin').value = '';
+  var TIPO_ORDEN = ['ACTIVO','PASIVO','CAPITAL','INGRESO','GASTO'];
+  var TIPO_LABEL = {ACTIVO:'Activo',PASIVO:'Pasivo',CAPITAL:'Capital',INGRESO:'Ingreso',GASTO:'Gasto'};
+  var TIPO_CLR   = {ACTIVO:'var(--activo)',PASIVO:'var(--pasivo)',CAPITAL:'var(--capital)',INGRESO:'var(--ingreso)',GASTO:'var(--gasto)'};
+  var TIPO_ICON  = {ACTIVO:'🏦',PASIVO:'📋',CAPITAL:'💼',INGRESO:'📈',GASTO:'📉'};
 
-function fN(n){
-  return (Math.abs(n)||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-
-const TIPO_ORDEN  = ['ACTIVO','PASIVO','CAPITAL','INGRESO','GASTO'];
-const TIPO_LABEL  = { ACTIVO:'Activo', PASIVO:'Pasivo', CAPITAL:'Capital', INGRESO:'Ingreso', GASTO:'Gasto' };
-const TIPO_ICON   = { ACTIVO:'🏦', PASIVO:'📋', CAPITAL:'💼', INGRESO:'📈', GASTO:'📉' };
-
-function render(){
-  let asientos = DB.getAsientos();
-  const ini = document.getElementById('f-ini').value;
-  const fin = document.getElementById('f-fin').value;
-  if(ini) asientos = asientos.filter(a => a.fecha >= ini);
-  if(fin) asientos = asientos.filter(a => a.fecha <= fin);
-
-  const cuentas = DB.getCuentas();
-
-  // Calcular movimientos (Debe y Haber acumulados) por cuenta
-  const movs = {}; // cuentaId -> { debe, haber }
-  asientos.forEach(a => {
-    a.movimientos.forEach(m => {
-      if(!movs[m.cuentaId]) movs[m.cuentaId] = { debe:0, haber:0 };
-      m.tipo === 'DEBE'
-        ? (movs[m.cuentaId].debe  += parseFloat(m.monto)||0)
-        : (movs[m.cuentaId].haber += parseFloat(m.monto)||0);
-    });
-  });
-
-  // Solo cuentas con movimientos
-  const conMovs = cuentas.filter(c => movs[c.id]);
-
-  if(!conMovs.length){
-    document.getElementById('status-badge').innerHTML = `<span class="status-badge bad">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
-      Sin movimientos registrados
-    </span>`;
-    document.getElementById('info-grid').innerHTML = `
-      <div class="stat-card"><div class="s-label">Cuentas con movimiento</div><div class="s-value" style="color:var(--accent);">0</div></div>
-      <div class="stat-card"><div class="s-label">Total Debe</div><div class="s-value" style="color:var(--green);">$0.00</div></div>
-      <div class="stat-card"><div class="s-label">Total Haber</div><div class="s-value" style="color:var(--red);">$0.00</div></div>
-    `;
-    document.getElementById('balanza-wrap').innerHTML = `
-      <div class="empty-balanza">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-        <p>No hay transacciones registradas aún.<br>Registra asientos en el Libro Diario para ver la balanza.</p>
-        <a href="transacciones.html" class="btn btn-primary">+ Registrar primera transacción</a>
-      </div>`;
-    return;
+  function fN(n){
+    return (Math.abs(parseFloat(n)||0)).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
   }
 
-  // Calcular saldo deudor / acreedor por cuenta
-  // Saldo deudor  = Debe > Haber → diferencia va a col. Saldo Deudor
-  // Saldo acreedor = Haber > Debe → diferencia va a col. Saldo Acreedor
-  let sumDebe=0, sumHaber=0, sumSD=0, sumSA=0;
-  const filas = conMovs.map(c => {
-    const m = movs[c.id];
-    const diff = m.debe - m.haber;
-    const sd = diff > 0 ? diff : 0;  // saldo deudor
-    const sa = diff < 0 ? Math.abs(diff) : 0; // saldo acreedor
-    sumDebe  += m.debe;
-    sumHaber += m.haber;
-    sumSD    += sd;
-    sumSA    += sa;
-    return { ...c, debe:m.debe, haber:m.haber, sd, sa };
-  });
+  function render(){
+    var asientos = DB.getAsientos();
+    var ini = document.getElementById('f-ini').value;
+    var fin = document.getElementById('f-fin').value;
+    if(ini) asientos = asientos.filter(function(a){ return a.fecha >= ini; });
+    if(fin) asientos = asientos.filter(function(a){ return a.fecha <= fin; });
 
-  // Agrupar por tipo en el orden contable
-  const porTipo = {};
-  TIPO_ORDEN.forEach(t => { porTipo[t] = filas.filter(f=>f.tipo===t).sort((a,b)=>a.codigo.localeCompare(b.codigo,undefined,{numeric:true})); });
+    var cuentas = DB.getCuentas();
 
-  // ── Info cards ──
-  const cuadra = Math.abs(sumDebe-sumHaber) < 0.01 && Math.abs(sumSD-sumSA) < 0.01;
-  document.getElementById('status-badge').innerHTML = `
-    <span class="status-badge ${cuadra?'ok':'bad'}">
-      ${cuadra
-        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>Balanza cuadrada`
-        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>No cuadra — revisar`}
-    </span>`;
-
-  document.getElementById('info-grid').innerHTML = [
-    { label:'Cuentas con movimiento', val:conMovs.length+'', mono:false, color:'var(--accent)' },
-    { label:'Total Debe',             val:'$'+fN(sumDebe),  mono:true,  color:'var(--green)' },
-    { label:'Total Haber',            val:'$'+fN(sumHaber), mono:true,  color:'var(--red)' },
-    { label:'Saldo Deudor total',     val:'$'+fN(sumSD),    mono:true,  color:'var(--blue)' },
-    { label:'Saldo Acreedor total',   val:'$'+fN(sumSA),    mono:true,  color:'var(--orange)' },
-    { label:'Diferencia',             val:'$'+fN(Math.abs(sumDebe-sumHaber)), mono:true, color: cuadra?'var(--green)':'var(--red)' },
-  ].map(c=>`<div class="stat-card">
-    <div class="s-label">${c.label}</div>
-    <div class="s-value" style="color:${c.color};${c.mono?'font-family:JetBrains Mono,monospace;font-size:16px;':''}">${c.val}</div>
-  </div>`).join('');
-
-  // ── Tabla ──
-  let tbodyHtml = '';
-  TIPO_ORDEN.forEach(tipo => {
-    const rows = porTipo[tipo];
-    if(!rows.length) return;
-
-    // Separador de tipo
-    tbodyHtml += `<tr class="tipo-sep">
-      <td colspan="6"><span>
-        <span class="tipo-sep-dot" style="background:${TIPO_COLOR[tipo]}"></span>
-        ${TIPO_ICON[tipo]} ${TIPO_LABEL[tipo]}
-      </span></td>
-    </tr>`;
-
-    rows.forEach(r => {
-      tbodyHtml += `<tr>
-        <td class="td-codigo">${r.codigo}</td>
-        <td class="td-nombre">${r.nombre}</td>
-        <td class="td-num debe">${r.debe ? fN(r.debe) : '—'}</td>
-        <td class="td-num haber">${r.haber ? fN(r.haber) : '—'}</td>
-        <td class="td-num sd">${r.sd ? fN(r.sd) : '—'}</td>
-        <td class="td-num sa">${r.sa ? fN(r.sa) : '—'}</td>
-      </tr>`;
+    // Acumular debe/haber por cuentaId
+    var mov = {};
+    asientos.forEach(function(a){
+      a.movimientos.forEach(function(m){
+        if(!mov[m.cuentaId]) mov[m.cuentaId] = {debe:0, haber:0};
+        if(m.tipo === 'DEBE') mov[m.cuentaId].debe  += parseFloat(m.monto)||0;
+        else                  mov[m.cuentaId].haber += parseFloat(m.monto)||0;
+      });
     });
-  });
 
-  // ── Verificación de igualdad ──
-  const verifHtml = `
-    <div class="verif-bar">
-      <div class="verif-item">
-        <span class="verif-label">Debe</span>
-        <span class="verif-val" style="color:var(--green);">$${fN(sumDebe)}</span>
-        <span class="verif-eq">=</span>
-        <span class="verif-label">Haber</span>
-        <span class="verif-val" style="color:var(--red);">$${fN(sumHaber)}</span>
-        <span class="status-badge ${Math.abs(sumDebe-sumHaber)<0.01?'ok':'bad'}" style="padding:3px 10px;font-size:11px;">
-          ${Math.abs(sumDebe-sumHaber)<0.01?'✓ Igual':'✗ Diferencia: $'+fN(Math.abs(sumDebe-sumHaber))}
-        </span>
-      </div>
-      <div style="width:1px;height:24px;background:var(--border);"></div>
-      <div class="verif-item">
-        <span class="verif-label">Saldo Deudor</span>
-        <span class="verif-val" style="color:var(--blue);">$${fN(sumSD)}</span>
-        <span class="verif-eq">=</span>
-        <span class="verif-label">Saldo Acreedor</span>
-        <span class="verif-val" style="color:var(--orange);">$${fN(sumSA)}</span>
-        <span class="status-badge ${Math.abs(sumSD-sumSA)<0.01?'ok':'bad'}" style="padding:3px 10px;font-size:11px;">
-          ${Math.abs(sumSD-sumSA)<0.01?'✓ Igual':'✗ Diferencia: $'+fN(Math.abs(sumSD-sumSA))}
-        </span>
-      </div>
-      <span style="margin-left:auto;font-size:11px;color:var(--text3);">${asientos.length} asiento${asientos.length!==1?'s':''} · ${conMovs.length} cuenta${conMovs.length!==1?'s':''}</span>
-    </div>`;
+    // Cuentas con movimiento
+    var filas = cuentas.filter(function(c){ return mov[c.id]; }).map(function(c){
+      var m  = mov[c.id];
+      var diff = m.debe - m.haber;
+      return {
+        codigo: c.codigo, nombre: c.nombre, tipo: c.tipo,
+        debe: m.debe, haber: m.haber,
+        sd: diff > 0 ?  diff : 0,
+        sa: diff < 0 ? -diff : 0
+      };
+    });
 
-  document.getElementById('balanza-wrap').innerHTML = `
-    <table class="balanza-table">
-      <thead>
-        <tr>
-          <th colspan="2" style="text-align:left;">Cuenta</th>
-          <th colspan="2">Movimientos</th>
-          <th colspan="2">Saldos</th>
-        </tr>
-        <tr class="sub-hdr">
-          <th class="left">Código</th>
-          <th class="left">Nombre</th>
-          <th>Debe</th>
-          <th>Haber</th>
-          <th>Saldo Deudor</th>
-          <th>Saldo Acreedor</th>
-        </tr>
-      </thead>
-      <tbody>${tbodyHtml}</tbody>
-      <tfoot>
-        <tr>
-          <td colspan="2">Totales</td>
-          <td>$${fN(sumDebe)}</td>
-          <td>$${fN(sumHaber)}</td>
-          <td>$${fN(sumSD)}</td>
-          <td>$${fN(sumSA)}</td>
-        </tr>
-      </tfoot>
-    </table>
-    ${verifHtml}`;
-}
+    // Totales
+    var sumD=0, sumH=0, sumSD=0, sumSA=0;
+    filas.forEach(function(f){ sumD+=f.debe; sumH+=f.haber; sumSD+=f.sd; sumSA+=f.sa; });
 
-// Ejecutar al cargar
-if(document.readyState === 'loading'){
-  document.addEventListener('DOMContentLoaded', render);
-} else {
+    // ── Vacío ──
+    if(!filas.length){
+      document.getElementById('info-grid').innerHTML = '';
+      document.getElementById('st-badge').innerHTML  = '';
+      document.getElementById('balanza-wrap').innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><p>No hay movimientos en el período seleccionado.</p><a href="transacciones.html" class="btn btn-primary">+ Nueva transacción</a></div>';
+      return;
+    }
+
+    var cuadra = Math.abs(sumD-sumH) < 0.01 && Math.abs(sumSD-sumSA) < 0.01;
+
+    // ── Badge ──
+    document.getElementById('st-badge').innerHTML = cuadra
+      ? '<span style="background:var(--green-bg);color:var(--green);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;">✓ Balanza cuadrada</span>'
+      : '<span style="background:var(--red-bg);color:var(--red);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;">✗ No cuadra — revisar</span>';
+
+    // ── Info cards ──
+    document.getElementById('info-grid').innerHTML =
+      ['<div class="stat-card"><div class="s-label">Cuentas con movimiento</div><div class="s-value" style="color:var(--accent);">'+filas.length+'</div></div>',
+       '<div class="stat-card"><div class="s-label">Total Debe</div><div class="s-value" style="color:var(--green);font-family:JetBrains Mono,monospace;font-size:17px;">$'+fN(sumD)+'</div></div>',
+       '<div class="stat-card"><div class="s-label">Total Haber</div><div class="s-value" style="color:var(--red);font-family:JetBrains Mono,monospace;font-size:17px;">$'+fN(sumH)+'</div></div>',
+       '<div class="stat-card"><div class="s-label">Saldo Deudor</div><div class="s-value" style="color:var(--blue);font-family:JetBrains Mono,monospace;font-size:17px;">$'+fN(sumSD)+'</div></div>',
+       '<div class="stat-card"><div class="s-label">Saldo Acreedor</div><div class="s-value" style="color:var(--orange);font-family:JetBrains Mono,monospace;font-size:17px;">$'+fN(sumSA)+'</div></div>',
+       '<div class="stat-card"><div class="s-label">Diferencia</div><div class="s-value" style="color:'+(cuadra?'var(--green)':'var(--red)')+';">$'+fN(Math.abs(sumD-sumH))+'</div><div class="s-sub">'+(cuadra?'Cuadra ✓':'Revisar')+'</div></div>'
+      ].join('');
+
+    // ── Tabla ──
+    var tbody = '';
+    TIPO_ORDEN.forEach(function(tipo){
+      var rows = filas.filter(function(f){ return f.tipo===tipo; })
+                      .sort(function(a,b){ return a.codigo.localeCompare(b.codigo,undefined,{numeric:true}); });
+      if(!rows.length) return;
+      tbody += '<tr class="sep"><td colspan="6">'+TIPO_ICON[tipo]+' '+TIPO_LABEL[tipo]+'</td></tr>';
+      rows.forEach(function(r){
+        tbody += '<tr>'
+          + '<td class="c-cod">'+r.codigo+'</td>'
+          + '<td class="c-nom">'+r.nombre+'</td>'
+          + '<td class="c-num c-debe">'+( r.debe ? fN(r.debe) : '—' )+'</td>'
+          + '<td class="c-num c-hab" >'+( r.haber? fN(r.haber): '—' )+'</td>'
+          + '<td class="c-num c-sd"  >'+( r.sd   ? fN(r.sd)  : '—' )+'</td>'
+          + '<td class="c-num c-sa"  >'+( r.sa   ? fN(r.sa)  : '—' )+'</td>'
+          + '</tr>';
+      });
+    });
+
+    var verif = '<div class="verif-bar">'
+      + '<div class="v-item"><span class="v-lbl">Debe</span><span class="v-val" style="color:var(--green);">$'+fN(sumD)+'</span>'
+      + '<span style="color:var(--text3);">=</span>'
+      + '<span class="v-lbl">Haber</span><span class="v-val" style="color:var(--red);">$'+fN(sumH)+'</span>'
+      + '<span class="'+(Math.abs(sumD-sumH)<0.01?'v-ok':'v-bad')+'">'+(Math.abs(sumD-sumH)<0.01?'✓ Iguales':'✗ Diferencia $'+fN(Math.abs(sumD-sumH)))+'</span></div>'
+      + '<div style="width:1px;height:20px;background:var(--border);"></div>'
+      + '<div class="v-item"><span class="v-lbl">Saldo Deudor</span><span class="v-val" style="color:var(--blue);">$'+fN(sumSD)+'</span>'
+      + '<span style="color:var(--text3);">=</span>'
+      + '<span class="v-lbl">Saldo Acreedor</span><span class="v-val" style="color:var(--orange);">$'+fN(sumSA)+'</span>'
+      + '<span class="'+(Math.abs(sumSD-sumSA)<0.01?'v-ok':'v-bad')+'">'+(Math.abs(sumSD-sumSA)<0.01?'✓ Iguales':'✗ Diferencia $'+fN(Math.abs(sumSD-sumSA)))+'</span></div>'
+      + '<span style="margin-left:auto;font-size:11px;color:var(--text3);">'+asientos.length+' asiento'+(asientos.length!==1?'s':'')+' · '+filas.length+' cuenta'+(filas.length!==1?'s':'')+'</span>'
+      + '</div>';
+
+    document.getElementById('balanza-wrap').innerHTML =
+      '<table class="balanza-table">'
+      + '<thead>'
+      + '<tr class="hdr1"><th colspan="2">Cuenta</th><th colspan="2">Movimientos</th><th colspan="2">Saldos</th></tr>'
+      + '<tr class="hdr2"><th>Código</th><th>Nombre</th><th>Debe</th><th>Haber</th><th>Saldo Deudor</th><th>Saldo Acreedor</th></tr>'
+      + '</thead>'
+      + '<tbody>'+tbody+'</tbody>'
+      + '<tfoot><tr><td colspan="2">TOTALES</td><td>$'+fN(sumD)+'</td><td>$'+fN(sumH)+'</td><td>$'+fN(sumSD)+'</td><td>$'+fN(sumSA)+'</td></tr></tfoot>'
+      + '</table>'
+      + verif;
+  }
+
+  // Ejecutar render al cargar
   render();
-}
 </script>
 </body>
 </html>
